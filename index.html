@@ -1,0 +1,1329 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Filename Lookalikes</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      input {
+        margin-bottom: 10px;
+        padding: 5px;
+        width: 300px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 4px;
+      }
+      th {
+        background: #eee;
+      }
+      .copy-btn {
+        padding: 2px 6px;
+        margin: 0 2px;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .alt-list {
+        margin: 0;
+        white-space: pre-wrap;
+        font-size: 12px;
+      }
+      .help {
+        margin: 8px 0;
+        color: #444;
+      }
+      .desc-cell {
+        max-width: 420px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Filename Lookalikes</h1>
+    <p>Alt examples: Space = Alt + 32, A = Alt + 65</p>
+    <p class="help">
+      If your keyboard does not have a character, search by description, Unicode
+      code (example: U+03B1), or Alt code text, then use Copy.
+    </p>
+    <p class="help">
+      Strict lookalikes are listed first. Related but not direct lookalikes are
+      shown in a separate section below.
+    </p>
+    <p>
+      Filter:
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search original, description, U+code, Alt + code"
+      />
+    </p>
+    <div id="tables"></div>
+
+    <script>
+      const makeEntry = (char, code, name, sim = "High", allowed = "Yes") => ({
+        char,
+        code,
+        name,
+        sim,
+        allowed,
+      });
+
+      const toHex = (value) =>
+        value.toString(16).toUpperCase().padStart(4, "0");
+
+      const dedupeEntries = (entries) => {
+        const seen = new Set();
+        return entries.filter((entry) => {
+          const key = `${entry.char}-${entry.code}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      };
+
+      const formatAltCode = (hexCode) => {
+        const decimalCode = parseInt(hexCode, 16);
+        if (Number.isNaN(decimalCode)) return "N/A";
+        if (decimalCode <= 255) {
+          return `Alt + ${decimalCode.toString().padStart(4, "0")} (${decimalCode})`;
+        }
+        return `Alt + ${decimalCode}`;
+      };
+
+      const getOrigDisplay = (orig) => (orig === " " ? "[space]" : orig);
+
+      const getOriginType = (unicodeName) => {
+        const upper = unicodeName.toUpperCase();
+        if (upper.includes("FULLWIDTH")) return "Fullwidth compatibility";
+        if (upper.includes("GREEK")) return "Greek script";
+        if (upper.includes("CYRILLIC")) return "Cyrillic script";
+        if (upper.includes("MATHEMATICAL")) return "Mathematical style";
+        if (upper.includes("ROMAN NUMERAL")) return "Roman numeral";
+        if (upper.includes("SPACE")) return "Whitespace";
+        return "Unicode";
+      };
+
+      const buildCharDescription = (
+        orig,
+        item,
+        rowIndex,
+        isRelated = false,
+      ) => {
+        const origDisplay = getOrigDisplay(orig);
+        if (rowIndex === 0) {
+          if (isRelated) {
+            return `Base character ${origDisplay}. This table lists related alternatives that are not strict visual lookalikes.`;
+          }
+          return `Base character ${origDisplay}. Use this as the reference for all similar entries.`;
+        }
+
+        const originType = getOriginType(item.name);
+        if (isRelated) {
+          return `${originType} related alternative for ${origDisplay}. Kept separate because it is not a close visual lookalike.`;
+        }
+        return `${originType} lookalike of ${origDisplay}. Useful when keyboard typing is not available; use Copy.`;
+      };
+
+      // Phase 1: lowercase letters (a-z)
+      const lowercaseExtras = {
+        a: [
+          makeEntry("α", "03B1", "Greek SMALL ALPHA", "High", "Yes"),
+          makeEntry("а", "0430", "Cyrillic SMALL A", "High", "Yes"),
+          makeEntry("ɑ", "0251", "Latin SMALL LETTER ALPHA", "Medium", "Yes"),
+        ],
+        b: [
+          makeEntry("β", "03B2", "Greek SMALL BETA", "High", "Yes"),
+          makeEntry("в", "0432", "Cyrillic SMALL VE", "Medium", "Yes"),
+        ],
+        c: [
+          makeEntry("ϲ", "03F2", "Greek LUNATE SIGMA SYMBOL", "High", "Yes"),
+          makeEntry("с", "0441", "Cyrillic SMALL ES", "High", "Yes"),
+          makeEntry(
+            "ⅽ",
+            "217D",
+            "Small ROMAN NUMERAL ONE HUNDRED",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        d: [
+          makeEntry("ԁ", "0501", "Cyrillic SMALL KOMI DE", "High", "Yes"),
+          makeEntry(
+            "ⅾ",
+            "217E",
+            "Small ROMAN NUMERAL FIVE HUNDRED",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        e: [
+          makeEntry("ε", "03B5", "Greek SMALL EPSILON", "High", "Yes"),
+          makeEntry("е", "0435", "Cyrillic SMALL IE", "High", "Yes"),
+          makeEntry("℮", "212E", "ESTIMATED SYMBOL", "Medium", "Yes"),
+        ],
+        f: [
+          makeEntry(
+            "ƒ",
+            "0192",
+            "Latin SMALL LETTER F WITH HOOK",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        g: [
+          makeEntry("ɡ", "0261", "Latin SMALL LETTER SCRIPT G", "High", "Yes"),
+          makeEntry("ℊ", "210A", "SCRIPT SMALL G", "Medium", "Yes"),
+        ],
+        h: [
+          makeEntry("һ", "04BB", "Cyrillic SMALL SHHA", "High", "Yes"),
+          makeEntry("ℎ", "210E", "PLANCK CONSTANT", "Medium", "Yes"),
+        ],
+        i: [
+          makeEntry(
+            "і",
+            "0456",
+            "Cyrillic SMALL BYELORUSSIAN-UKRAINIAN I",
+            "High",
+            "Yes",
+          ),
+          makeEntry("ι", "03B9", "Greek SMALL IOTA", "High", "Yes"),
+          makeEntry("ⅰ", "2170", "Small ROMAN NUMERAL ONE", "Medium", "Yes"),
+        ],
+        j: [makeEntry("ј", "0458", "Cyrillic SMALL JE", "High", "Yes")],
+        k: [
+          makeEntry("κ", "03BA", "Greek SMALL KAPPA", "High", "Yes"),
+          makeEntry("к", "043A", "Cyrillic SMALL KA", "High", "Yes"),
+        ],
+        l: [
+          makeEntry("ӏ", "04CF", "Cyrillic SMALL PALOCHKA", "High", "Yes"),
+          makeEntry("ⅼ", "217C", "Small ROMAN NUMERAL FIFTY", "Medium", "Yes"),
+        ],
+        m: [
+          makeEntry("м", "043C", "Cyrillic SMALL EM", "High", "Yes"),
+          makeEntry(
+            "ⅿ",
+            "217F",
+            "Small ROMAN NUMERAL ONE THOUSAND",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        n: [makeEntry("η", "03B7", "Greek SMALL ETA", "Medium", "Yes")],
+        o: [
+          makeEntry("ο", "03BF", "Greek SMALL OMICRON", "High", "Yes"),
+          makeEntry("о", "043E", "Cyrillic SMALL O", "High", "Yes"),
+          makeEntry("0", "0030", "DIGIT ZERO", "Medium", "Yes"),
+        ],
+        p: [
+          makeEntry("ρ", "03C1", "Greek SMALL RHO", "High", "Yes"),
+          makeEntry("р", "0440", "Cyrillic SMALL ER", "High", "Yes"),
+        ],
+        q: [makeEntry("ԛ", "051B", "Cyrillic SMALL QA", "Medium", "Yes")],
+        r: [makeEntry("г", "0433", "Cyrillic SMALL GHE", "Low", "Yes")],
+        s: [
+          makeEntry("ѕ", "0455", "Cyrillic SMALL DZE", "High", "Yes"),
+          makeEntry("ſ", "017F", "Latin SMALL LETTER LONG S", "Medium", "Yes"),
+        ],
+        t: [
+          makeEntry("τ", "03C4", "Greek SMALL TAU", "High", "Yes"),
+          makeEntry("т", "0442", "Cyrillic SMALL TE", "High", "Yes"),
+        ],
+        u: [
+          makeEntry("υ", "03C5", "Greek SMALL UPSILON", "Medium", "Yes"),
+          makeEntry("ү", "04AF", "Cyrillic SMALL STRAIGHT U", "Medium", "Yes"),
+        ],
+        v: [
+          makeEntry("ν", "03BD", "Greek SMALL NU", "High", "Yes"),
+          makeEntry("ѵ", "0475", "Cyrillic SMALL IZHITSA", "Medium", "Yes"),
+          makeEntry("ⅴ", "2174", "Small ROMAN NUMERAL FIVE", "Medium", "Yes"),
+        ],
+        w: [
+          makeEntry("ɯ", "026F", "Latin SMALL LETTER TURNED M", "Low", "Yes"),
+          makeEntry("ԝ", "051D", "Cyrillic SMALL WE", "Medium", "Yes"),
+        ],
+        x: [
+          makeEntry("χ", "03C7", "Greek SMALL CHI", "High", "Yes"),
+          makeEntry("х", "0445", "Cyrillic SMALL HA", "High", "Yes"),
+          makeEntry("×", "00D7", "MULTIPLICATION SIGN", "Medium", "Yes"),
+        ],
+        y: [
+          makeEntry("у", "0443", "Cyrillic SMALL U", "High", "Yes"),
+          makeEntry("ɣ", "0263", "Latin SMALL LETTER GAMMA", "Medium", "Yes"),
+        ],
+        z: [makeEntry("ζ", "03B6", "Greek SMALL ZETA", "Medium", "Yes")],
+      };
+
+      const lowercaseData = Object.fromEntries(
+        [..."abcdefghijklmnopqrstuvwxyz"].map((letter, index) => {
+          const fullwidthCode = 0xff41 + index;
+          const mathBoldCode = 0x1d41a + index;
+          const mathBoldItalicCode = 0x1d482 + index;
+          const mathSansCode = 0x1d5ba + index;
+          const mathSansBoldCode = 0x1d5ee + index;
+          const mathMonoCode = 0x1d68a + index;
+
+          const generatedStyles = [
+            makeEntry(
+              String.fromCodePoint(mathBoldCode),
+              toHex(mathBoldCode),
+              `Mathematical BOLD SMALL ${letter.toUpperCase()}`,
+              "Medium",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathBoldItalicCode),
+              toHex(mathBoldItalicCode),
+              `Mathematical BOLD ITALIC SMALL ${letter.toUpperCase()}`,
+              "Medium",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathSansCode),
+              toHex(mathSansCode),
+              `Mathematical SANS-SERIF SMALL ${letter.toUpperCase()}`,
+              "Low",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathSansBoldCode),
+              toHex(mathSansBoldCode),
+              `Mathematical SANS-SERIF BOLD SMALL ${letter.toUpperCase()}`,
+              "Low",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathMonoCode),
+              toHex(mathMonoCode),
+              `Mathematical MONOSPACE SMALL ${letter.toUpperCase()}`,
+              "Low",
+              "Yes",
+            ),
+          ];
+
+          const variants = dedupeEntries([
+            makeEntry(
+              String.fromCodePoint(fullwidthCode),
+              toHex(fullwidthCode),
+              `Fullwidth LATIN SMALL LETTER ${letter.toUpperCase()}`,
+              "High",
+              "Yes",
+            ),
+            ...(lowercaseExtras[letter] || []),
+            ...generatedStyles,
+          ]);
+
+          return [letter, variants];
+        }),
+      );
+
+      // Phase 2: uppercase letters (A-Z)
+      const uppercaseExtras = {
+        A: [
+          makeEntry("Α", "0391", "Greek CAPITAL ALPHA", "High", "Yes"),
+          makeEntry("А", "0410", "Cyrillic CAPITAL A", "High", "Yes"),
+          makeEntry(
+            "ᗅ",
+            "15C5",
+            "CANADIAN SYLLABICS CARRIER GHO",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        B: [
+          makeEntry("Β", "0392", "Greek CAPITAL BETA", "High", "Yes"),
+          makeEntry("В", "0412", "Cyrillic CAPITAL VE", "High", "Yes"),
+          makeEntry("ℬ", "212C", "SCRIPT CAPITAL B", "Medium", "Yes"),
+        ],
+        C: [
+          makeEntry(
+            "Ϲ",
+            "03F9",
+            "Greek CAPITAL LUNATE SIGMA SYMBOL",
+            "High",
+            "Yes",
+          ),
+          makeEntry("С", "0421", "Cyrillic CAPITAL ES", "High", "Yes"),
+          makeEntry("Ⅽ", "216D", "ROMAN NUMERAL ONE HUNDRED", "Medium", "Yes"),
+        ],
+        D: [
+          makeEntry("Ⅾ", "216E", "ROMAN NUMERAL FIVE HUNDRED", "Medium", "Yes"),
+          makeEntry("Δ", "0394", "Greek CAPITAL DELTA", "Low", "Yes"),
+        ],
+        E: [
+          makeEntry("Ε", "0395", "Greek CAPITAL EPSILON", "High", "Yes"),
+          makeEntry("Е", "0415", "Cyrillic CAPITAL IE", "High", "Yes"),
+          makeEntry("ℰ", "2130", "SCRIPT CAPITAL E", "Medium", "Yes"),
+        ],
+        F: [
+          makeEntry("Ϝ", "03DC", "Greek LETTER DIGAMMA", "Medium", "Yes"),
+          makeEntry("ℱ", "2131", "SCRIPT CAPITAL F", "Medium", "Yes"),
+        ],
+        G: [makeEntry("Ꮐ", "13C0", "CHEROKEE LETTER NAH", "Medium", "Yes")],
+        H: [
+          makeEntry("Η", "0397", "Greek CAPITAL ETA", "High", "Yes"),
+          makeEntry("Н", "041D", "Cyrillic CAPITAL EN", "High", "Yes"),
+          makeEntry("ℍ", "210D", "DOUBLE-STRUCK CAPITAL H", "Medium", "Yes"),
+        ],
+        I: [
+          makeEntry("Ι", "0399", "Greek CAPITAL IOTA", "High", "Yes"),
+          makeEntry(
+            "І",
+            "0406",
+            "Cyrillic CAPITAL BYELORUSSIAN-UKRAINIAN I",
+            "High",
+            "Yes",
+          ),
+          makeEntry("Ⅰ", "2160", "ROMAN NUMERAL ONE", "Medium", "Yes"),
+        ],
+        J: [makeEntry("Ј", "0408", "Cyrillic CAPITAL JE", "High", "Yes")],
+        K: [
+          makeEntry("Κ", "039A", "Greek CAPITAL KAPPA", "High", "Yes"),
+          makeEntry("К", "041A", "Cyrillic CAPITAL KA", "High", "Yes"),
+          makeEntry("K", "212A", "KELVIN SIGN", "Medium", "Yes"),
+        ],
+        L: [
+          makeEntry("Ⅼ", "216C", "ROMAN NUMERAL FIFTY", "Medium", "Yes"),
+          makeEntry("ℒ", "2112", "SCRIPT CAPITAL L", "Medium", "Yes"),
+        ],
+        M: [
+          makeEntry("Μ", "039C", "Greek CAPITAL MU", "High", "Yes"),
+          makeEntry("М", "041C", "Cyrillic CAPITAL EM", "High", "Yes"),
+          makeEntry("Ⅿ", "216F", "ROMAN NUMERAL ONE THOUSAND", "Medium", "Yes"),
+        ],
+        N: [
+          makeEntry("Ν", "039D", "Greek CAPITAL NU", "High", "Yes"),
+          makeEntry("ℕ", "2115", "DOUBLE-STRUCK CAPITAL N", "Medium", "Yes"),
+        ],
+        O: [
+          makeEntry("Ο", "039F", "Greek CAPITAL OMICRON", "High", "Yes"),
+          makeEntry("О", "041E", "Cyrillic CAPITAL O", "High", "Yes"),
+          makeEntry("0", "0030", "DIGIT ZERO", "High", "Yes"),
+        ],
+        P: [
+          makeEntry("Ρ", "03A1", "Greek CAPITAL RHO", "High", "Yes"),
+          makeEntry("Р", "0420", "Cyrillic CAPITAL ER", "High", "Yes"),
+          makeEntry("ℙ", "2119", "DOUBLE-STRUCK CAPITAL P", "Medium", "Yes"),
+        ],
+        Q: [
+          makeEntry("Ԛ", "051A", "Cyrillic CAPITAL QA", "Medium", "Yes"),
+          makeEntry("ℚ", "211A", "DOUBLE-STRUCK CAPITAL Q", "Medium", "Yes"),
+        ],
+        R: [
+          makeEntry("ℛ", "211B", "SCRIPT CAPITAL R", "Medium", "Yes"),
+          makeEntry("ℝ", "211D", "DOUBLE-STRUCK CAPITAL R", "Medium", "Yes"),
+        ],
+        S: [makeEntry("Ѕ", "0405", "Cyrillic CAPITAL DZE", "High", "Yes")],
+        T: [
+          makeEntry("Τ", "03A4", "Greek CAPITAL TAU", "High", "Yes"),
+          makeEntry("Т", "0422", "Cyrillic CAPITAL TE", "High", "Yes"),
+          makeEntry("⊤", "22A4", "DOWN TACK", "Low", "Yes"),
+        ],
+        U: [
+          makeEntry("Υ", "03A5", "Greek CAPITAL UPSILON", "High", "Yes"),
+          makeEntry(
+            "Ү",
+            "04AE",
+            "Cyrillic CAPITAL STRAIGHT U",
+            "Medium",
+            "Yes",
+          ),
+          makeEntry("∪", "222A", "UNION", "Low", "Yes"),
+        ],
+        V: [
+          makeEntry("Ⅴ", "2164", "ROMAN NUMERAL FIVE", "Medium", "Yes"),
+          makeEntry("Ѵ", "0474", "Cyrillic CAPITAL IZHITSA", "Medium", "Yes"),
+        ],
+        W: [makeEntry("Ш", "0428", "Cyrillic CAPITAL SHA", "Low", "Yes")],
+        X: [
+          makeEntry("Χ", "03A7", "Greek CAPITAL CHI", "High", "Yes"),
+          makeEntry("Х", "0425", "Cyrillic CAPITAL HA", "High", "Yes"),
+          makeEntry("Ⅹ", "2169", "ROMAN NUMERAL TEN", "Medium", "Yes"),
+        ],
+        Y: [
+          makeEntry("Υ", "03A5", "Greek CAPITAL UPSILON", "High", "Yes"),
+          makeEntry("У", "0423", "Cyrillic CAPITAL U", "High", "Yes"),
+        ],
+        Z: [
+          makeEntry("Ζ", "0396", "Greek CAPITAL ZETA", "High", "Yes"),
+          makeEntry("ℤ", "2124", "DOUBLE-STRUCK CAPITAL Z", "Medium", "Yes"),
+        ],
+      };
+
+      const uppercaseData = Object.fromEntries(
+        [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map((letter, index) => {
+          const fullwidthCode = 0xff21 + index;
+          const mathBoldCode = 0x1d400 + index;
+          const mathBoldItalicCode = 0x1d468 + index;
+          const mathSansCode = 0x1d5a0 + index;
+          const mathSansBoldCode = 0x1d5d4 + index;
+          const mathMonoCode = 0x1d670 + index;
+
+          const generatedStyles = [
+            makeEntry(
+              String.fromCodePoint(mathBoldCode),
+              toHex(mathBoldCode),
+              `Mathematical BOLD CAPITAL ${letter}`,
+              "Medium",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathBoldItalicCode),
+              toHex(mathBoldItalicCode),
+              `Mathematical BOLD ITALIC CAPITAL ${letter}`,
+              "Medium",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathSansCode),
+              toHex(mathSansCode),
+              `Mathematical SANS-SERIF CAPITAL ${letter}`,
+              "Low",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathSansBoldCode),
+              toHex(mathSansBoldCode),
+              `Mathematical SANS-SERIF BOLD CAPITAL ${letter}`,
+              "Low",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathMonoCode),
+              toHex(mathMonoCode),
+              `Mathematical MONOSPACE CAPITAL ${letter}`,
+              "Low",
+              "Yes",
+            ),
+          ];
+
+          const variants = dedupeEntries([
+            makeEntry(
+              String.fromCodePoint(fullwidthCode),
+              toHex(fullwidthCode),
+              `Fullwidth LATIN CAPITAL ${letter}`,
+              "High",
+              "Yes",
+            ),
+            ...(uppercaseExtras[letter] || []),
+            ...generatedStyles,
+          ]);
+
+          return [letter, variants];
+        }),
+      );
+
+      // Phase 3: numeric characters (0-9)
+      const numberExtras = {
+        0: [
+          makeEntry("O", "004F", "LATIN CAPITAL LETTER O", "High", "Yes"),
+          makeEntry("o", "006F", "LATIN SMALL LETTER O", "High", "Yes"),
+          makeEntry("Ο", "039F", "Greek CAPITAL OMICRON", "High", "Yes"),
+          makeEntry("О", "041E", "Cyrillic CAPITAL O", "High", "Yes"),
+        ],
+        1: [
+          makeEntry("l", "006C", "LATIN SMALL LETTER L", "High", "Yes"),
+          makeEntry("I", "0049", "LATIN CAPITAL LETTER I", "High", "Yes"),
+          makeEntry("|", "007C", "VERTICAL LINE", "Medium", "Yes"),
+          makeEntry("Ⅰ", "2160", "ROMAN NUMERAL ONE", "Medium", "Yes"),
+        ],
+        3: [
+          makeEntry("З", "0417", "Cyrillic CAPITAL ZE", "Medium", "Yes"),
+          makeEntry("Ʒ", "01B7", "LATIN CAPITAL LETTER EZH", "Medium", "Yes"),
+        ],
+        5: [
+          makeEntry("S", "0053", "LATIN CAPITAL LETTER S", "High", "Yes"),
+          makeEntry("Ѕ", "0405", "Cyrillic CAPITAL DZE", "High", "Yes"),
+        ],
+        6: [makeEntry("b", "0062", "LATIN SMALL LETTER B", "Medium", "Yes")],
+        7: [
+          makeEntry("T", "0054", "LATIN CAPITAL LETTER T", "Low", "Yes"),
+          makeEntry("Ⅶ", "2166", "ROMAN NUMERAL SEVEN", "Medium", "Yes"),
+        ],
+        8: [
+          makeEntry("B", "0042", "LATIN CAPITAL LETTER B", "High", "Yes"),
+          makeEntry("Β", "0392", "Greek CAPITAL BETA", "High", "Yes"),
+          makeEntry("৪", "09EA", "BENGALI DIGIT FOUR", "Low", "Yes"),
+        ],
+        9: [
+          makeEntry("g", "0067", "LATIN SMALL LETTER G", "Medium", "Yes"),
+          makeEntry("৭", "09ED", "BENGALI DIGIT SEVEN", "Low", "Yes"),
+        ],
+      };
+
+      const numberData = Object.fromEntries(
+        [..."0123456789"].map((digit, index) => {
+          const fullwidthCode = 0xff10 + index;
+          const mathBoldCode = 0x1d7ce + index;
+          const mathDoubleStruckCode = 0x1d7d8 + index;
+          const mathSansCode = 0x1d7e2 + index;
+          const mathSansBoldCode = 0x1d7ec + index;
+          const mathMonoCode = 0x1d7f6 + index;
+
+          const generatedStyles = [
+            makeEntry(
+              String.fromCodePoint(mathBoldCode),
+              toHex(mathBoldCode),
+              `Mathematical BOLD DIGIT ${digit}`,
+              "Medium",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathDoubleStruckCode),
+              toHex(mathDoubleStruckCode),
+              `Mathematical DOUBLE-STRUCK DIGIT ${digit}`,
+              "Medium",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathSansCode),
+              toHex(mathSansCode),
+              `Mathematical SANS-SERIF DIGIT ${digit}`,
+              "Low",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathSansBoldCode),
+              toHex(mathSansBoldCode),
+              `Mathematical SANS-SERIF BOLD DIGIT ${digit}`,
+              "Low",
+              "Yes",
+            ),
+            makeEntry(
+              String.fromCodePoint(mathMonoCode),
+              toHex(mathMonoCode),
+              `Mathematical MONOSPACE DIGIT ${digit}`,
+              "Low",
+              "Yes",
+            ),
+          ];
+
+          const variants = dedupeEntries([
+            makeEntry(
+              String.fromCodePoint(fullwidthCode),
+              toHex(fullwidthCode),
+              `Fullwidth DIGIT ${digit}`,
+              "High",
+              "Yes",
+            ),
+            ...(numberExtras[digit] || []),
+            ...generatedStyles,
+          ]);
+
+          return [digit, variants];
+        }),
+      );
+
+      const commonAltCodeSets = {
+        A: [
+          { char: "À", label: "Grave", alt: "Alt + 0192" },
+          { char: "Á", label: "Acute", alt: "Alt + 0193" },
+          { char: "Â", label: "Circumflex", alt: "Alt + 0194" },
+          { char: "Ã", label: "Tilde", alt: "Alt + 0195" },
+          { char: "Ä", label: "Umlaut", alt: "Alt + 0196" },
+          { char: "Å", label: "Ring", alt: "Alt + 0197" },
+          { char: "Æ", label: "Ligature", alt: "Alt + 0198" },
+        ],
+        a: [
+          { char: "à", label: "Grave", alt: "Alt + 0224" },
+          { char: "á", label: "Acute", alt: "Alt + 0225" },
+          { char: "â", label: "Circumflex", alt: "Alt + 0226" },
+          { char: "ã", label: "Tilde", alt: "Alt + 0227" },
+          { char: "ä", label: "Umlaut", alt: "Alt + 0228" },
+          { char: "å", label: "Ring", alt: "Alt + 0229" },
+          { char: "æ", label: "Ligature", alt: "Alt + 0230" },
+        ],
+        C: [{ char: "Ç", label: "Cedilla", alt: "Alt + 0199" }],
+        c: [{ char: "ç", label: "Cedilla", alt: "Alt + 0231" }],
+        E: [
+          { char: "È", label: "Grave", alt: "Alt + 0200" },
+          { char: "É", label: "Acute", alt: "Alt + 0201" },
+          { char: "Ê", label: "Circumflex", alt: "Alt + 0202" },
+          { char: "Ë", label: "Umlaut", alt: "Alt + 0203" },
+        ],
+        e: [
+          { char: "è", label: "Grave", alt: "Alt + 0232" },
+          { char: "é", label: "Acute", alt: "Alt + 0233" },
+          { char: "ê", label: "Circumflex", alt: "Alt + 0234" },
+          { char: "ë", label: "Umlaut", alt: "Alt + 0235" },
+        ],
+        I: [
+          { char: "Ì", label: "Grave", alt: "Alt + 0204" },
+          { char: "Í", label: "Acute", alt: "Alt + 0205" },
+          { char: "Î", label: "Circumflex", alt: "Alt + 0206" },
+          { char: "Ï", label: "Umlaut", alt: "Alt + 0207" },
+        ],
+        i: [
+          { char: "ì", label: "Grave", alt: "Alt + 0236" },
+          { char: "í", label: "Acute", alt: "Alt + 0237" },
+          { char: "î", label: "Circumflex", alt: "Alt + 0238" },
+          { char: "ï", label: "Umlaut", alt: "Alt + 0239" },
+        ],
+        N: [{ char: "Ñ", label: "Tilde", alt: "Alt + 0209" }],
+        n: [{ char: "ñ", label: "Tilde", alt: "Alt + 0241" }],
+        O: [
+          { char: "Ò", label: "Grave", alt: "Alt + 0210" },
+          { char: "Ó", label: "Acute", alt: "Alt + 0211" },
+          { char: "Ô", label: "Circumflex", alt: "Alt + 0212" },
+          { char: "Õ", label: "Tilde", alt: "Alt + 0213" },
+          { char: "Ö", label: "Umlaut", alt: "Alt + 0214" },
+          { char: "Ø", label: "Slashed", alt: "Alt + 0216" },
+        ],
+        o: [
+          { char: "ò", label: "Grave", alt: "Alt + 0242" },
+          { char: "ó", label: "Acute", alt: "Alt + 0243" },
+          { char: "ô", label: "Circumflex", alt: "Alt + 0244" },
+          { char: "õ", label: "Tilde", alt: "Alt + 0245" },
+          { char: "ö", label: "Umlaut", alt: "Alt + 0246" },
+          { char: "ø", label: "Slashed", alt: "Alt + 0248" },
+        ],
+        U: [
+          { char: "Ù", label: "Grave", alt: "Alt + 0217" },
+          { char: "Ú", label: "Acute", alt: "Alt + 0218" },
+          { char: "Û", label: "Circumflex", alt: "Alt + 0219" },
+          { char: "Ü", label: "Umlaut", alt: "Alt + 0220" },
+        ],
+        u: [
+          { char: "ù", label: "Grave", alt: "Alt + 0249" },
+          { char: "ú", label: "Acute", alt: "Alt + 0250" },
+          { char: "û", label: "Circumflex", alt: "Alt + 0251" },
+          { char: "ü", label: "Umlaut", alt: "Alt + 0252" },
+        ],
+        Y: [{ char: "Ý", label: "Acute", alt: "Alt + 0221" }],
+        y: [
+          { char: "ý", label: "Acute", alt: "Alt + 0253" },
+          { char: "ÿ", label: "Umlaut", alt: "Alt + 0255" },
+        ],
+      };
+
+      const getCommonAltCodesText = (orig) => {
+        const items =
+          commonAltCodeSets[orig] ||
+          commonAltCodeSets[orig.toUpperCase()] ||
+          [];
+
+        const originalAlt = formatAltCode(toHex(orig.codePointAt(0)));
+        if (!items.length) {
+          return `Common Alt Codes for '${orig}' Variations:\n${orig} (Original): ${originalAlt}`;
+        }
+
+        const lines = items.map(
+          (item) => `${item.char} (${item.label}): ${item.alt}`,
+        );
+        return `Common Alt Codes for '${orig}' Variations:\n${orig} (Original): ${originalAlt}\n${lines.join("\n")}`;
+      };
+
+      const symbolData = {
+        " ": [
+          makeEntry("\u00A0", "00A0", "NO-BREAK SPACE", "High", "Yes"),
+          makeEntry("\u2002", "2002", "EN SPACE", "High", "Yes"),
+          makeEntry("\u2003", "2003", "EM SPACE", "High", "Yes"),
+          makeEntry("\u2007", "2007", "FIGURE SPACE", "Medium", "Yes"),
+          makeEntry("\u2009", "2009", "THIN SPACE", "Medium", "Yes"),
+          makeEntry("\u202F", "202F", "NARROW NO-BREAK SPACE", "Medium", "Yes"),
+          makeEntry("\u3000", "3000", "IDEOGRAPHIC SPACE", "Medium", "Yes"),
+        ],
+        "-": [
+          makeEntry("－", "FF0D", "FULLWIDTH HYPHEN-MINUS", "High", "Yes"),
+          makeEntry("‐", "2010", "HYPHEN", "High", "Yes"),
+          makeEntry("‑", "2011", "NON-BREAKING HYPHEN", "High", "Yes"),
+          makeEntry("‒", "2012", "FIGURE DASH", "High", "Yes"),
+          makeEntry("–", "2013", "EN DASH", "High", "Yes"),
+          makeEntry("—", "2014", "EM DASH", "Medium", "Yes"),
+          makeEntry("⁃", "2043", "HYPHEN BULLET", "Medium", "Yes"),
+          makeEntry("−", "2212", "MINUS SIGN", "High", "Yes"),
+        ],
+        _: [
+          makeEntry("﹍", "FE4D", "DASHED LOW LINE", "High", "Yes"),
+          makeEntry("﹎", "FE4E", "CENTRELINE LOW LINE", "High", "Yes"),
+          makeEntry("﹏", "FE4F", "WAVY LOW LINE", "High", "Yes"),
+        ],
+        ".": [
+          makeEntry("․", "2024", "ONE DOT LEADER", "High", "Yes"),
+          makeEntry("．", "FF0E", "FULLWIDTH FULL STOP", "High", "Yes"),
+          makeEntry("﹒", "FE52", "SMALL FULL STOP", "High", "Yes"),
+          makeEntry("。", "3002", "IDEOGRAPHIC FULL STOP", "Medium", "Yes"),
+        ],
+        ",": [
+          makeEntry("‚", "201A", "SINGLE LOW-9 QUOTATION MARK", "High", "Yes"),
+          makeEntry("，", "FF0C", "FULLWIDTH COMMA", "High", "Yes"),
+          makeEntry("﹐", "FE50", "SMALL COMMA", "High", "Yes"),
+        ],
+        ":": [
+          makeEntry("：", "FF1A", "FULLWIDTH COLON", "High", "Yes"),
+          makeEntry("꞉", "A789", "MODIFIER LETTER COLON", "High", "Yes"),
+          makeEntry("∶", "2236", "RATIO", "Medium", "Yes"),
+        ],
+        ";": [
+          makeEntry(";", "037E", "GREEK QUESTION MARK", "High", "Yes"),
+          makeEntry("；", "FF1B", "FULLWIDTH SEMICOLON", "High", "Yes"),
+          makeEntry("﹔", "FE54", "SMALL SEMICOLON", "High", "Yes"),
+        ],
+        "'": [
+          makeEntry("＇", "FF07", "FULLWIDTH APOSTROPHE", "High", "Yes"),
+          makeEntry("‘", "2018", "LEFT SINGLE QUOTATION MARK", "High", "Yes"),
+          makeEntry("’", "2019", "RIGHT SINGLE QUOTATION MARK", "High", "Yes"),
+          makeEntry("ʼ", "02BC", "MODIFIER LETTER APOSTROPHE", "Medium", "Yes"),
+        ],
+        '"': [
+          makeEntry("＂", "FF02", "FULLWIDTH QUOTATION MARK", "High", "Yes"),
+          makeEntry("“", "201C", "LEFT DOUBLE QUOTATION MARK", "High", "Yes"),
+          makeEntry("”", "201D", "RIGHT DOUBLE QUOTATION MARK", "High", "Yes"),
+          makeEntry("″", "2033", "DOUBLE PRIME", "Medium", "Yes"),
+        ],
+        "/": [
+          makeEntry("∕", "2215", "DIVISION SLASH", "High", "Yes"),
+          makeEntry("⁄", "2044", "FRACTION SLASH", "High", "Yes"),
+          makeEntry(
+            "╱",
+            "2571",
+            "BOX DRAWINGS LIGHT DIAGONAL",
+            "Medium",
+            "Yes",
+          ),
+          makeEntry(
+            "⟋",
+            "27CB",
+            "MATHEMATICAL RISING DIAGONAL",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "\\": [
+          makeEntry("＼", "FF3C", "FULLWIDTH REVERSE SOLIDUS", "High", "Yes"),
+          makeEntry("∖", "2216", "SET MINUS", "High", "Yes"),
+          makeEntry(
+            "⟍",
+            "27CD",
+            "MATHEMATICAL FALLING DIAGONAL",
+            "Medium",
+            "Yes",
+          ),
+          makeEntry("⧵", "29F5", "REVERSE SOLIDUS OPERATOR", "Medium", "Yes"),
+        ],
+        "(": [
+          makeEntry("（", "FF08", "FULLWIDTH LEFT PARENTHESIS", "High", "Yes"),
+          makeEntry(
+            "❨",
+            "2768",
+            "MEDIUM LEFT PARENTHESIS ORNAMENT",
+            "Medium",
+            "Yes",
+          ),
+          makeEntry("﴾", "FD3E", "ORNATE LEFT PARENTHESIS", "Medium", "Yes"),
+        ],
+        ")": [
+          makeEntry("）", "FF09", "FULLWIDTH RIGHT PARENTHESIS", "High", "Yes"),
+          makeEntry(
+            "❩",
+            "2769",
+            "MEDIUM RIGHT PARENTHESIS ORNAMENT",
+            "Medium",
+            "Yes",
+          ),
+          makeEntry("﴿", "FD3F", "ORNATE RIGHT PARENTHESIS", "Medium", "Yes"),
+        ],
+        "{": [
+          makeEntry(
+            "｛",
+            "FF5B",
+            "FULLWIDTH LEFT CURLY BRACKET",
+            "High",
+            "Yes",
+          ),
+          makeEntry(
+            "❴",
+            "2774",
+            "MEDIUM LEFT CURLY BRACKET ORNAMENT",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "}": [
+          makeEntry(
+            "｝",
+            "FF5D",
+            "FULLWIDTH RIGHT CURLY BRACKET",
+            "High",
+            "Yes",
+          ),
+          makeEntry(
+            "❵",
+            "2775",
+            "MEDIUM RIGHT CURLY BRACKET ORNAMENT",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "=": [
+          makeEntry("＝", "FF1D", "FULLWIDTH EQUALS SIGN", "High", "Yes"),
+          makeEntry("﹦", "FE66", "SMALL EQUALS SIGN", "High", "Yes"),
+          makeEntry("≡", "2261", "IDENTICAL TO", "Medium", "Yes"),
+        ],
+        "+": [
+          makeEntry("＋", "FF0B", "FULLWIDTH PLUS SIGN", "High", "Yes"),
+          makeEntry("﹢", "FE62", "SMALL PLUS SIGN", "High", "Yes"),
+          makeEntry("⁺", "207A", "SUPERSCRIPT PLUS SIGN", "Medium", "Yes"),
+          makeEntry("➕", "2795", "HEAVY PLUS SIGN", "Medium", "Yes"),
+        ],
+        "∞": [
+          makeEntry("∽", "223D", "REVERSED TILDE", "Medium", "Yes"),
+          makeEntry("∼", "223C", "TILDE OPERATOR", "Medium", "Yes"),
+          makeEntry("ꝏ", "A74F", "LATIN SMALL LETTER OO", "Medium", "Yes"),
+          makeEntry("Ꝏ", "A74E", "LATIN CAPITAL LETTER OO", "Low", "Yes"),
+        ],
+        "↑": [
+          makeEntry("⬆", "2B06", "UPWARDS BLACK ARROW", "High", "Yes"),
+          makeEntry("⇧", "21E7", "UPWARDS WHITE ARROW", "High", "Yes"),
+          makeEntry("⟰", "27F0", "UPWARDS QUADRUPLE ARROW", "Medium", "Yes"),
+          makeEntry(
+            "⭡",
+            "2B61",
+            "UPWARDS TRIANGLE-HEADED ARROW",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "↓": [
+          makeEntry("⬇", "2B07", "DOWNWARDS BLACK ARROW", "High", "Yes"),
+          makeEntry("⇩", "21E9", "DOWNWARDS WHITE ARROW", "High", "Yes"),
+          makeEntry("⟱", "27F1", "DOWNWARDS QUADRUPLE ARROW", "Medium", "Yes"),
+          makeEntry(
+            "⭣",
+            "2B63",
+            "DOWNWARDS TRIANGLE-HEADED ARROW",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "→": [
+          makeEntry("➡", "27A1", "BLACK RIGHTWARDS ARROW", "High", "Yes"),
+          makeEntry("⇨", "21E8", "RIGHTWARDS WHITE ARROW", "High", "Yes"),
+          makeEntry("⟶", "27F6", "LONG RIGHTWARDS ARROW", "Medium", "Yes"),
+          makeEntry(
+            "➜",
+            "279C",
+            "HEAVY ROUND-TIPPED RIGHTWARDS ARROW",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "←": [
+          makeEntry("⬅", "2B05", "LEFTWARDS BLACK ARROW", "High", "Yes"),
+          makeEntry("⇦", "21E6", "LEFTWARDS WHITE ARROW", "High", "Yes"),
+          makeEntry("⟵", "27F5", "LONG LEFTWARDS ARROW", "Medium", "Yes"),
+          makeEntry("↞", "219E", "LEFTWARDS TWO HEADED ARROW", "Medium", "Yes"),
+        ],
+        "±": [makeEntry("∓", "2213", "MINUS-OR-PLUS SIGN", "High", "Yes")],
+        "×": [
+          makeEntry("✕", "2715", "MULTIPLICATION X", "High", "Yes"),
+          makeEntry("✖", "2716", "HEAVY MULTIPLICATION X", "High", "Yes"),
+          makeEntry(
+            "╳",
+            "2573",
+            "BOX DRAWINGS LIGHT DIAGONAL CROSS",
+            "Medium",
+            "Yes",
+          ),
+          makeEntry("⨯", "2A2F", "VECTOR OR CROSS PRODUCT", "Medium", "Yes"),
+        ],
+        "÷": [
+          makeEntry("➗", "2797", "HEAVY DIVISION SIGN", "High", "Yes"),
+          makeEntry("⨸", "2A38", "CIRCLED DIVISION SIGN", "Medium", "Yes"),
+        ],
+        "≈": [
+          makeEntry("≅", "2245", "APPROXIMATELY EQUAL TO", "High", "Yes"),
+          makeEntry("≃", "2243", "ASYMPTOTICALLY EQUAL TO", "High", "Yes"),
+          makeEntry("∼", "223C", "TILDE OPERATOR", "Medium", "Yes"),
+          makeEntry("≊", "224A", "ALMOST EQUAL OR EQUAL TO", "High", "Yes"),
+        ],
+        "≠": [
+          makeEntry("≢", "2262", "NOT IDENTICAL TO", "High", "Yes"),
+          makeEntry("≭", "226D", "NOT EQUIVALENT TO", "High", "Yes"),
+        ],
+        "≤": [
+          makeEntry("≦", "2266", "LESS-THAN OVER EQUAL TO", "High", "Yes"),
+          makeEntry(
+            "⩽",
+            "2A7D",
+            "LESS-THAN OR SLANTED EQUAL TO",
+            "High",
+            "Yes",
+          ),
+          makeEntry("≲", "2272", "LESS-THAN OR EQUIVALENT TO", "Medium", "Yes"),
+        ],
+        "≥": [
+          makeEntry("≧", "2267", "GREATER-THAN OVER EQUAL TO", "High", "Yes"),
+          makeEntry(
+            "⩾",
+            "2A7E",
+            "GREATER-THAN OR SLANTED EQUAL TO",
+            "High",
+            "Yes",
+          ),
+          makeEntry(
+            "≳",
+            "2273",
+            "GREATER-THAN OR EQUIVALENT TO",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        $: [
+          makeEntry("＄", "FF04", "FULLWIDTH DOLLAR SIGN", "High", "Yes"),
+          makeEntry("﹩", "FE69", "SMALL DOLLAR SIGN", "High", "Yes"),
+        ],
+        "€": [
+          makeEntry("₠", "20A0", "EURO-CURRENCY SIGN", "High", "Yes"),
+          makeEntry("℮", "212E", "ESTIMATED SYMBOL", "Medium", "Yes"),
+        ],
+        "£": [
+          makeEntry("￡", "FFE1", "FULLWIDTH POUND SIGN", "High", "Yes"),
+          makeEntry("₤", "20A4", "LIRA SIGN", "Medium", "Yes"),
+        ],
+        "¥": [makeEntry("￥", "FFE5", "FULLWIDTH YEN SIGN", "High", "Yes")],
+        "@": [
+          makeEntry("＠", "FF20", "FULLWIDTH COMMERCIAL AT", "High", "Yes"),
+          makeEntry("﹫", "FE6B", "SMALL COMMERCIAL AT", "High", "Yes"),
+        ],
+        "#": [
+          makeEntry("＃", "FF03", "FULLWIDTH NUMBER SIGN", "High", "Yes"),
+          makeEntry("♯", "266F", "MUSIC SHARP SIGN", "Medium", "Yes"),
+        ],
+        "%": [
+          makeEntry("％", "FF05", "FULLWIDTH PERCENT SIGN", "High", "Yes"),
+          makeEntry("٪", "066A", "ARABIC PERCENT SIGN", "High", "Yes"),
+          makeEntry("‰", "2030", "PER MILLE SIGN", "Medium", "Yes"),
+        ],
+        "&": [
+          makeEntry("＆", "FF06", "FULLWIDTH AMPERSAND", "High", "Yes"),
+          makeEntry("⁊", "204A", "TIRONIAN SIGN ET", "Medium", "Yes"),
+        ],
+        "∑": [
+          makeEntry("Σ", "03A3", "GREEK CAPITAL LETTER SIGMA", "High", "Yes"),
+          makeEntry(
+            "⅀",
+            "2140",
+            "DOUBLE-STRUCK N-ARY SUMMATION",
+            "High",
+            "Yes",
+          ),
+          makeEntry("∐", "2210", "N-ARY COPRODUCT", "Medium", "Yes"),
+        ],
+        "∫": [
+          makeEntry("∮", "222E", "CONTOUR INTEGRAL", "High", "Yes"),
+          makeEntry("∯", "222F", "SURFACE INTEGRAL", "Medium", "Yes"),
+          makeEntry("∰", "2230", "VOLUME INTEGRAL", "Medium", "Yes"),
+        ],
+        "√": [
+          makeEntry("∛", "221B", "CUBE ROOT", "High", "Yes"),
+          makeEntry("∜", "221C", "FOURTH ROOT", "High", "Yes"),
+          makeEntry("⎷", "23B7", "RADICAL SYMBOL BOTTOM", "Medium", "Yes"),
+        ],
+        π: [
+          makeEntry("ϖ", "03D6", "GREEK PI SYMBOL", "High", "Yes"),
+          makeEntry("ℼ", "213C", "DOUBLE-STRUCK SMALL PI", "Medium", "Yes"),
+        ],
+        µ: [makeEntry("μ", "03BC", "GREEK SMALL LETTER MU", "High", "Yes")],
+        "∅": [
+          makeEntry("⌀", "2300", "DIAMETER SIGN", "High", "Yes"),
+          makeEntry(
+            "Ø",
+            "00D8",
+            "LATIN CAPITAL LETTER O WITH STROKE",
+            "Medium",
+            "Yes",
+          ),
+        ],
+        "∈": [
+          makeEntry("ε", "03B5", "GREEK SMALL LETTER EPSILON", "Medium", "Yes"),
+          makeEntry("ϵ", "03F5", "GREEK LUNATE EPSILON SYMBOL", "High", "Yes"),
+        ],
+        "∪": [makeEntry("⋃", "22C3", "N-ARY UNION", "High", "Yes")],
+        "∩": [makeEntry("⋂", "22C2", "N-ARY INTERSECTION", "High", "Yes")],
+        "°": [
+          makeEntry("º", "00BA", "MASCULINE ORDINAL INDICATOR", "High", "Yes"),
+          makeEntry("˚", "02DA", "RING ABOVE", "Medium", "Yes"),
+        ],
+      };
+
+      // Useful alternates that are related in meaning but not direct visual lookalikes.
+      const relatedSymbolData = {
+        "&": [
+          makeEntry("∧", "2227", "LOGICAL AND", "Low", "Yes"),
+          makeEntry("⋀", "22C0", "N-ARY LOGICAL AND", "Low", "Yes"),
+          makeEntry("Ɛ", "0190", "LATIN CAPITAL LETTER OPEN E", "Low", "Yes"),
+        ],
+        "@": [
+          makeEntry("ⓐ", "24D0", "CIRCLED LATIN SMALL LETTER A", "Low", "Yes"),
+          makeEntry("∀", "2200", "FOR ALL", "Low", "Yes"),
+          makeEntry(
+            "Ａ",
+            "FF21",
+            "FULLWIDTH LATIN CAPITAL LETTER A",
+            "Low",
+            "Yes",
+          ),
+        ],
+        $: [
+          makeEntry("¢", "00A2", "CENT SIGN", "Low", "Yes"),
+          makeEntry("¤", "00A4", "CURRENCY SIGN", "Low", "Yes"),
+          makeEntry("₹", "20B9", "INDIAN RUPEE SIGN", "Low", "Yes"),
+        ],
+        "€": [
+          makeEntry("₨", "20A8", "RUPEE SIGN", "Low", "Yes"),
+          makeEntry("₽", "20BD", "RUBLE SIGN", "Low", "Yes"),
+        ],
+        "£": [
+          makeEntry("€", "20AC", "EURO SIGN", "Low", "Yes"),
+          makeEntry("¥", "00A5", "YEN SIGN", "Low", "Yes"),
+        ],
+        "¥": [
+          makeEntry("₩", "20A9", "WON SIGN", "Low", "Yes"),
+          makeEntry("₪", "20AA", "SHEQEL SIGN", "Low", "Yes"),
+          makeEntry("Y", "0059", "LATIN CAPITAL LETTER Y", "Low", "Yes"),
+        ],
+      };
+
+      const data = {
+        ...lowercaseData,
+        ...uppercaseData,
+        ...numberData,
+        ...symbolData,
+      };
+
+      const allExactKeys = new Set([
+        ...Object.keys(data),
+        ...Object.keys(relatedSymbolData),
+      ]);
+
+      const buildSectionSearchIndex = (
+        orig,
+        sectionRows,
+        commonAltText,
+        isRelated = false,
+      ) => {
+        const originalCode = toHex(orig.codePointAt(0));
+        const values = [
+          orig,
+          getOrigDisplay(orig),
+          orig.toLowerCase(),
+          `u+${originalCode}`,
+          originalCode,
+          commonAltText,
+          isRelated ? "related alternative not lookalike" : "strict lookalike",
+        ];
+
+        if (orig === " ") {
+          values.push("space", "whitespace", "blank", "empty");
+        }
+
+        sectionRows.forEach((item, rowIndex) => {
+          values.push(
+            item.char,
+            item.code,
+            `u+${item.code}`,
+            item.name,
+            item.sim,
+            formatAltCode(item.code),
+            buildCharDescription(orig, item, rowIndex, isRelated),
+          );
+        });
+
+        return values.join(" ").toLowerCase();
+      };
+
+      const appendSections = (
+        container,
+        sourceData,
+        titlePrefix,
+        isRelated,
+      ) => {
+        for (const orig in sourceData) {
+          const commonAltText = getCommonAltCodesText(orig);
+          const origDisplay = getOrigDisplay(orig);
+
+          const originalEntry = makeEntry(
+            orig,
+            toHex(orig.codePointAt(0)),
+            `Original character '${origDisplay}'`,
+            "Exact",
+            "Yes",
+          );
+          const sectionRows = [originalEntry, ...sourceData[orig]];
+
+          const section = document.createElement("section");
+          section.className = isRelated ? "section related-section" : "section";
+          section.dataset.orig = orig;
+          section.dataset.search = buildSectionSearchIndex(
+            orig,
+            sectionRows,
+            commonAltText,
+            isRelated,
+          );
+
+          // Section header and single section copy button
+          const h2 = document.createElement("h2");
+          h2.textContent = titlePrefix + origDisplay;
+          section.appendChild(h2);
+
+          const copyAllBtn = document.createElement("button");
+          copyAllBtn.textContent = "Copy All Characters";
+          copyAllBtn.onclick = () => {
+            const text = sectionRows.map((x) => x.char).join("");
+            navigator.clipboard.writeText(text);
+            alert("Copied all characters for " + origDisplay);
+          };
+          section.appendChild(copyAllBtn);
+
+          // Table header
+          const table = document.createElement("table");
+          const head = table.insertRow();
+          [
+            "Char",
+            "Copy",
+            "Similarity",
+            "Name",
+            "Alt Code",
+            "Code",
+            "Description",
+          ].forEach((text) => {
+            const th = document.createElement("th");
+            th.textContent = text;
+            head.appendChild(th);
+          });
+
+          // Table rows
+          sectionRows.forEach((item, rowIndex) => {
+            const row = table.insertRow();
+            // Character cell (monospace for clarity)
+            const tdChar = row.insertCell();
+            tdChar.textContent = item.char;
+            tdChar.style.fontFamily = "monospace";
+
+            // Copy button
+            const tdCopy = row.insertCell();
+            const btn = document.createElement("button");
+            btn.textContent = "Copy";
+            btn.className = "copy-btn";
+            btn.onclick = () => {
+              navigator.clipboard.writeText(item.char);
+            };
+            tdCopy.appendChild(btn);
+
+            // Similarity
+            row.insertCell().textContent = item.sim;
+
+            // Name cell
+            row.insertCell().textContent = item.name;
+
+            // Alt code cell
+            row.insertCell().textContent = formatAltCode(item.code);
+
+            // Code cell
+            row.insertCell().textContent = "U+" + item.code;
+
+            // Description cell
+            const tdDesc = row.insertCell();
+            tdDesc.className = "desc-cell";
+            tdDesc.textContent = buildCharDescription(
+              orig,
+              item,
+              rowIndex,
+              isRelated,
+            );
+          });
+
+          section.appendChild(table);
+          container.appendChild(section);
+        }
+      };
+
+      // Function to build tables for each key
+      function createTables() {
+        const container = document.getElementById("tables");
+        container.innerHTML = "";
+
+        appendSections(container, data, "Original: ", false);
+
+        if (Object.keys(relatedSymbolData).length > 0) {
+          const relatedTitle = document.createElement("h2");
+          relatedTitle.textContent = "Related Symbols (Not Direct Lookalikes)";
+          container.appendChild(relatedTitle);
+
+          const relatedHelp = document.createElement("p");
+          relatedHelp.className = "help";
+          relatedHelp.textContent =
+            "These are useful alternatives, but they are kept separate because they are not close visual matches.";
+          container.appendChild(relatedHelp);
+
+          appendSections(container, relatedSymbolData, "Related to: ", true);
+        }
+      }
+
+      const searchInput = document.getElementById("searchInput");
+
+      // Filter functionality
+      searchInput.addEventListener("input", function () {
+        const filterRaw = this.value;
+        const filterTrimmed = filterRaw.trim();
+        const filter = filterTrimmed.toLowerCase();
+        const hasFilter = filterRaw.length > 0;
+        const tokens = filter.split(/\s+/).filter(Boolean);
+        const onlySpaces = hasFilter && filterTrimmed.length === 0;
+
+        const hasExact = allExactKeys.has(filterRaw);
+
+        document.querySelectorAll(".section").forEach((section) => {
+          const orig = section.dataset.orig || "";
+          const searchText = section.dataset.search || "";
+
+          let show = !hasFilter;
+          if (hasFilter && hasExact) {
+            show = orig === filterRaw;
+          } else if (onlySpaces) {
+            show = orig === " ";
+          } else if (hasFilter && filter.length === 1) {
+            show = orig.toLowerCase() === filter;
+          } else if (hasFilter) {
+            show = tokens.every((token) => searchText.includes(token));
+          }
+
+          section.style.display = show ? "" : "none";
+        });
+      });
+
+      // Press '/' anywhere to jump to search, unless user is already typing.
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "/") return;
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+        const active = document.activeElement;
+        if (active === searchInput) return;
+
+        const isEditable =
+          active &&
+          (active.tagName === "INPUT" ||
+            active.tagName === "TEXTAREA" ||
+            active.tagName === "SELECT" ||
+            active.isContentEditable);
+
+        if (isEditable) return;
+
+        event.preventDefault();
+        searchInput.focus();
+      });
+
+      createTables();
+    </script>
+  </body>
+</html>
